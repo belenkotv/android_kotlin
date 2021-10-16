@@ -1,5 +1,6 @@
 package com.example.films
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -8,7 +9,6 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -68,7 +68,7 @@ class MoviesAdapter(
         private val owner: LifecycleOwner
     ) : RecyclerView.Adapter<MoviesAdapter.ViewHolder>() {
 
-    private var data: List<Movie> = ArrayList()
+    private var data: List<MovieBrief> = ArrayList()
 
     init {
         viewModel.getMovies(category)?.observe(owner, Observer {
@@ -81,6 +81,7 @@ class MoviesAdapter(
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var moviePictureView: ImageView? = null
         var movieNameView: TextView? = null
+        var movie: MovieBrief? = null
         init {
             moviePictureView = itemView.findViewById(R.id.movie_picture)
             movieNameView = itemView.findViewById(R.id.movie_name)
@@ -91,16 +92,23 @@ class MoviesAdapter(
         val itemView = LayoutInflater
             .from(parent.context)
             .inflate(R.layout.movie_item, parent, false)
-        return ViewHolder(itemView)
+        val ret = ViewHolder(itemView)
+        itemView.setOnClickListener {
+            val intent = Intent(it.context, MovieActivity::class.java)
+            intent.putExtra(MovieActivity.MOVIE_ID, ret.movie?.id)
+            it.context.startActivity(intent)
+        }
+        return ret
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.movieNameView?.text = data[position].name
+        holder.movie = data[position]
     }
 
     override fun getItemCount(): Int = data.size
 
-    private fun refresh(movies: List<Movie>) {
+    private fun refresh(movies: List<MovieBrief>) {
         this.data = movies
         notifyDataSetChanged()
     }
@@ -118,12 +126,5 @@ class MainActivity : AppCompatActivity() {
         val categoriesView: RecyclerView = findViewById(R.id.categories)
         categoriesView.layoutManager = LinearLayoutManager(this)
         categoriesView.adapter = CategoriesAdapter(viewModel, this)
-        /*
-        viewModel.getCategories().observe(this, Observer {
-            it?.let {
-                categoriesAdapter.refresh(it)
-            }
-        })
-        */
     }
 }
