@@ -14,6 +14,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.snackbar.Snackbar
 
 class CategoriesAdapter(private val viewModel: FilmsViewModel, private val owner: LifecycleOwner):
     RecyclerView.Adapter<CategoriesAdapter.ViewHolder>() {
@@ -98,6 +99,14 @@ class MoviesAdapter(
             intent.putExtra(MovieActivity.MOVIE_ID, ret.movie?.id)
             it.context.startActivity(intent)
         }
+        itemView.setOnLongClickListener {
+            ret.movie?.id?.let { it ->
+                viewModel.getMovieDetail(it)?.value?.description?.let { it ->
+                    itemView.showDescription(it)
+                }
+            }
+            return@setOnLongClickListener true
+        }
         return ret
     }
 
@@ -113,9 +122,14 @@ class MoviesAdapter(
         notifyDataSetChanged()
     }
 
+    private fun View.showDescription (text: String, length: Int = Snackbar.LENGTH_LONG) {
+        Snackbar.make(this, text, length).show()
+    }
+
 }
 
 class MainActivity : AppCompatActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -127,4 +141,5 @@ class MainActivity : AppCompatActivity() {
         categoriesView.layoutManager = LinearLayoutManager(this)
         categoriesView.adapter = CategoriesAdapter(viewModel, this)
     }
+
 }
