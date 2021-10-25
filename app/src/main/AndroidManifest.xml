@@ -14,7 +14,6 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -22,6 +21,10 @@
             android:name=".MovieActivity"
             android:exported="true">
         </activity>
+        <service
+            android:name=".TmdbService"
+            android:enabled="true"
+            android:exported="true"/>
     </application>
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
