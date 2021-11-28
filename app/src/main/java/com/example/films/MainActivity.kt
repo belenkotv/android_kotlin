@@ -1,6 +1,11 @@
 package com.example.films
 
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -9,6 +14,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -130,6 +136,10 @@ class MoviesAdapter(
 
 class MainActivity : AppCompatActivity() {
 
+    var serviceIntent: Intent? = null
+    var dataBroadcastReceiver: BroadcastReceiver? = null
+    var networkBroadcastReceiver: BroadcastReceiver? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -140,6 +150,54 @@ class MainActivity : AppCompatActivity() {
         val categoriesView: RecyclerView = findViewById(R.id.categories)
         categoriesView.layoutManager = LinearLayoutManager(this)
         categoriesView.adapter = CategoriesAdapter(viewModel, this)
+        serviceIntent = Intent(applicationContext, TmdbService::class.java)
+        dataBroadcastReceiver = object : BroadcastReceiver() {
+            override fun onReceive(contxt: Context?, intent: Intent?) {
+                //when (intent?.action) {
+                //    BROADCAST_CHANGE_TYPE_CHANGED -> handleChangeTypeChanged()
+                //}
+            }
+        }
+        networkBroadcastReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                if (intent == null || intent.extras == null) {
+                    return
+                }
+                context?.let {
+                    if (isNetworkAvailable(it)) {
+                        Toast.makeText(context, "Сеть доступна", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(context, "Сеть недоступна", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
     }
+
+    override fun onStart() {
+        super.onStart()
+        registerReceiver(dataBroadcastReceiver, IntentFilter(TmdbService.BROADCAST_DATA_CHANGED))
+        registerReceiver(
+            networkBroadcastReceiver,
+            IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
+        )
+        startService(serviceIntent)
+    }
+
+    override fun onStop() {
+        unregisterReceiver(dataBroadcastReceiver)
+        unregisterReceiver(networkBroadcastReceiver)
+        stopService(serviceIntent)
+        super.onStop()
+    }
+
+    fun isNetworkAvailable(context: Context) =
+        (context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager).run {
+            getNetworkCapabilities(activeNetwork)?.run {
+                hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ||
+                hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
+                hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)
+            } ?: false
+        }
 
 }

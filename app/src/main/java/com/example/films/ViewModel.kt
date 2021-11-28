@@ -10,6 +10,17 @@ class FilmsViewModel() : ViewModel() {
     private var movieDetails: HashMap<Int, MutableLiveData<MovieDetail>> = HashMap()
 
     init {
+        FilmsDataModel.getCategories(categories)
+        categories.observeForever {
+            for (category in it.listIterator()) {
+                val movieList = FilmsDataModel.getMovies(category)
+                movies.put(category, MutableLiveData(movieList))
+                for (movie in movieList.listIterator()) {
+                    movieDetails.put(movie.id, MutableLiveData(FilmsDataModel.getMovieDetail(movie.id)))
+                }
+            }
+        }
+        /*
         val categoryList = FilmsDataModel.getCategories()
         categories.value = categoryList
         for (category in categoryList.listIterator()) {
@@ -19,6 +30,7 @@ class FilmsViewModel() : ViewModel() {
                 movieDetails.put(movie.id, MutableLiveData(FilmsDataModel.getMovieDetail(movie.id)))
             }
         }
+        */
     }
 
     fun getCategories() = categories
