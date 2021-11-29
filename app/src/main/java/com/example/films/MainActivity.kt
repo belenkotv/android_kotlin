@@ -21,6 +21,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
+import com.squareup.picasso.Picasso
 
 class CategoriesAdapter(private val viewModel: FilmsViewModel, private val owner: LifecycleOwner):
     RecyclerView.Adapter<CategoriesAdapter.ViewHolder>() {
@@ -75,7 +76,7 @@ class MoviesAdapter(
         private val owner: LifecycleOwner
     ) : RecyclerView.Adapter<MoviesAdapter.ViewHolder>() {
 
-    private var data: List<MovieBrief> = ArrayList()
+    private var data: List<Movie> = ArrayList()
 
     init {
         viewModel.getMovies(category)?.observe(owner, Observer {
@@ -88,7 +89,7 @@ class MoviesAdapter(
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var moviePictureView: ImageView? = null
         var movieNameView: TextView? = null
-        var movie: MovieBrief? = null
+        var movie: Movie? = null
         init {
             moviePictureView = itemView.findViewById(R.id.movie_picture)
             movieNameView = itemView.findViewById(R.id.movie_name)
@@ -117,13 +118,17 @@ class MoviesAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.movieNameView?.text = data[position].name
-        holder.movie = data[position]
+        val movie = data[position]
+        Picasso.get()
+            .load(FilmsDataModel.getImageUrl(movie.pictureUrl))
+            .into(holder.moviePictureView)
+        holder.movieNameView?.text = movie.name
+        holder.movie = movie
     }
 
     override fun getItemCount(): Int = data.size
 
-    private fun refresh(movies: List<MovieBrief>) {
+    private fun refresh(movies: List<Movie>) {
         this.data = movies
         notifyDataSetChanged()
     }
