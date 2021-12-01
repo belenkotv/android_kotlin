@@ -1,20 +1,17 @@
 package com.example.films
 
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
+import android.app.Activity
+import android.content.*
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -23,8 +20,39 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.squareup.picasso.Picasso
 
-class CategoriesAdapter(private val viewModel: FilmsViewModel, private val owner: LifecycleOwner):
-    RecyclerView.Adapter<CategoriesAdapter.ViewHolder>() {
+class Preferences private constructor(private val prefs: SharedPreferences) {
+    
+    private val PREF_ADULT: String = "adult"
+
+    companion object Factory {
+        private val PREF_FILE: String = "prefs"
+        fun create(context: Context) : Preferences = Preferences(
+            context.getSharedPreferences(Preferences.PREF_FILE, Context.MODE_PRIVATE)
+        )
+    }
+
+    fun getAdult(): Boolean {
+        return this.prefs.getBoolean(PREF_ADULT, false)
+    }
+
+    fun setAdult(adult: Boolean) {
+        var editor = this.prefs.edit()
+        editor.putBoolean(PREF_ADULT, adult)
+        editor.commit()
+    }
+
+}
+
+interface OnClicks {
+    fun onMovie(movie: Movie)
+}
+
+class CategoriesAdapter(
+        private val viewModel: FilmsViewModel,
+        private val owner: LifecycleOwner,
+        private val prefs: Preferences,
+        private val onClicks: OnClicks
+    ) : RecyclerView.Adapter<CategoriesAdapter.ViewHolder>() {
 
     private var data: List<Category> = ArrayList()
 
@@ -58,22 +86,25 @@ class CategoriesAdapter(private val viewModel: FilmsViewModel, private val owner
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.categoryNameView?.text = data[position].name
-        holder.moviesView?.adapter = MoviesAdapter(data[position], viewModel, owner)
+        holder.moviesView?.adapter =
+            MoviesAdapter(data[position], owner, viewModel, prefs, onClicks)
     }
 
     override fun getItemCount(): Int = data.size
 
     private fun refresh(categories: List<Category>) {
-        this.data = categories
+        data = categories
         notifyDataSetChanged()
     }
 
 }
 
 class MoviesAdapter(
-        private val category: Category,
+        category: Category,
+        owner: LifecycleOwner,
         private val viewModel: FilmsViewModel,
-        private val owner: LifecycleOwner
+        private val prefs: Preferences,
+        private val onClicks: OnClicks
     ) : RecyclerView.Adapter<MoviesAdapter.ViewHolder>() {
 
     private var data: List<Movie> = ArrayList()
@@ -102,13 +133,11 @@ class MoviesAdapter(
             .inflate(R.layout.movie_item, parent, false)
         val ret = ViewHolder(itemView)
         itemView.setOnClickListener {
-            val intent = Intent(it.context, MovieActivity::class.java)
-            intent.putExtra(MovieActivity.MOVIE_ID, ret.movie?.id)
-            it.context.startActivity(intent)
+            ret.movie?.let { it1 -> onClicks.onMovie(it1) }
         }
         itemView.setOnLongClickListener {
             ret.movie?.id?.let { it ->
-                viewModel.getMovieDetail(it)?.value?.description?.let { it ->
+                viewModel.getMovie(it)?.value?.description?.let { it ->
                     itemView.showDescription(it)
                 }
             }
@@ -129,7 +158,14 @@ class MoviesAdapter(
     override fun getItemCount(): Int = data.size
 
     private fun refresh(movies: List<Movie>) {
-        this.data = movies
+        var filtered = mutableListOf<Movie>()
+        val adult = prefs.getAdult()
+        for (movie in movies) {
+            if (adult == movie.adult) {
+                filtered.add(movie)
+            }
+        }
+        data = filtered
         notifyDataSetChanged()
     }
 
@@ -139,22 +175,35 @@ class MoviesAdapter(
 
 }
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(R.layout.activity_main), OnClicks {
 
-    var serviceIntent: Intent? = null
+    private lateinit var categoriesAdapter: CategoriesAdapter
+    private lateinit var prefs: Preferences
+    private lateinit var serviceIntent: Intent
+    private lateinit var movieFragment: MovieFragment
     var dataBroadcastReceiver: BroadcastReceiver? = null
     var networkBroadcastReceiver: BroadcastReceiver? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
         val viewModel = ViewModelProvider(this).get(FilmsViewModel::class.java)
+        movieFragment = MovieFragment(viewModel)
+        if (savedInstanceState == null) {
+            supportFragmentManager
+                .beginTransaction()
+                .setReorderingAllowed(true)
+                .add(R.id.movie_view, movieFragment)
+                .hide(movieFragment)
+                .commit()
+        }
         val button: Button = findViewById(R.id.search)
         button.setOnClickListener {
         }
+        prefs = Preferences.create(this)
         val categoriesView: RecyclerView = findViewById(R.id.categories)
         categoriesView.layoutManager = LinearLayoutManager(this)
-        categoriesView.adapter = CategoriesAdapter(viewModel, this)
+        categoriesAdapter = CategoriesAdapter(viewModel, this, prefs, this)
+        categoriesView.adapter = categoriesAdapter
         serviceIntent = Intent(applicationContext, TmdbService::class.java)
         dataBroadcastReceiver = object : BroadcastReceiver() {
             override fun onReceive(contxt: Context?, intent: Intent?) {
@@ -179,6 +228,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        val inflater = menuInflater
+        inflater.inflate(R.menu.main, menu)
+        menu?.findItem(R.id.adult)?.isChecked = prefs.getAdult()
+        return super.onCreateOptionsMenu(menu)
+    }
+
     override fun onStart() {
         super.onStart()
         registerReceiver(dataBroadcastReceiver, IntentFilter(TmdbService.BROADCAST_DATA_CHANGED))
@@ -194,6 +250,42 @@ class MainActivity : AppCompatActivity() {
         unregisterReceiver(networkBroadcastReceiver)
         stopService(serviceIntent)
         super.onStop()
+    }
+
+    override fun onBackPressed() {
+        if (movieFragment.isHidden) {
+            super.onBackPressed()
+        } else {
+            supportFragmentManager
+                .beginTransaction()
+                .setReorderingAllowed(true)
+                .hide(movieFragment)
+                .commit()
+        }
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.adult -> {
+                item.isChecked = !item.isChecked
+                prefs.setAdult(item.isChecked)
+                categoriesAdapter.notifyDataSetChanged()
+                return true
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+    override fun onMovie(movie: Movie) {
+        movieFragment.setMovie(movie)
+        supportFragmentManager
+            .beginTransaction()
+            .setReorderingAllowed(true)
+            .show(movieFragment)
+            .commit()
+        //val intent = Intent(it.context, MovieActivity::class.java)
+        //intent.putExtra(MovieActivity.MOVIE_ID, ret.movie?.id)
+        //it.context.startActivity(intent)
     }
 
     fun isNetworkAvailable(context: Context) =

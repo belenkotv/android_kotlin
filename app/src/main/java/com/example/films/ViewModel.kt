@@ -6,8 +6,8 @@ import androidx.lifecycle.ViewModel
 class FilmsViewModel() : ViewModel() {
 
     private var categories: MutableLiveData<List<Category>> = MutableLiveData()
-    private var movies: HashMap<Category, MutableLiveData<List<Movie>>> = HashMap()
-    private var movieDetails: HashMap<Int, MutableLiveData<MovieDetail>> = HashMap()
+    private var moviesByCategory: HashMap<Category, MutableLiveData<List<Movie>>> = HashMap()
+    private var moviesById: HashMap<Int, MutableLiveData<Movie>> = HashMap()
 
     init {
         FilmsDataModel.getCategories(categories)
@@ -15,32 +15,18 @@ class FilmsViewModel() : ViewModel() {
             for (category in it.listIterator()) {
                 val movieList = MutableLiveData<List<Movie>>()
                 FilmsDataModel.getMovies(category, movieList)
-                movies.put(category, movieList)
+                moviesByCategory.put(category, movieList)
                 movieList.observeForever {
                     for (movie in movieList.value!!.listIterator()) {
-                        movieDetails.put(
-                            movie.id,
-                            MutableLiveData(FilmsDataModel.getMovieDetail(movie.id))
-                        )
+                        moviesById.put(movie.id, MutableLiveData(movie))
                     }
                 }
             }
         }
-        /*
-        val categoryList = FilmsDataModel.getCategories()
-        categories.value = categoryList
-        for (category in categoryList.listIterator()) {
-            val movieList = FilmsDataModel.getMovies(category)
-            movies.put(category, MutableLiveData(movieList))
-            for (movie in movieList.listIterator()) {
-                movieDetails.put(movie.id, MutableLiveData(FilmsDataModel.getMovieDetail(movie.id)))
-            }
-        }
-        */
     }
 
     fun getCategories() = categories
-    fun getMovies(category: Category) = movies.get(category)
-    fun getMovieDetail(id: Int) = movieDetails.get(id)
+    fun getMovies(category: Category) = moviesByCategory.get(category)
+    fun getMovie(id: Int) = moviesById.get(id)
 
 }

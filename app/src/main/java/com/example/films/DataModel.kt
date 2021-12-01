@@ -26,8 +26,11 @@ data class Movie(
     val id: Int,
     @SerializedName("title")
     val name: String,
+    @SerializedName("overview")
+    val description: String,
     @SerializedName("poster_path")
-    val pictureUrl: String
+    val pictureUrl: String,
+    val adult: Boolean
 )
 
 data class MovieBrief(val name: String, val id: Int)
@@ -114,42 +117,6 @@ object FilmsDataModel {
                 }
             }
         )
-
-        /*
-        return when (category.name.lowercase()) {
-            "комедия" -> listOf(
-                MovieBrief("Смешная", 1),
-                MovieBrief("Страшная", 2),
-                MovieBrief("Глупая", 3),
-                MovieBrief("Длинная", 4)
-            )
-            "драма" -> listOf(
-                MovieBrief("Смешная", 5),
-                MovieBrief("Страшная", 6),
-                MovieBrief("Глупая", 7),
-                MovieBrief("Длинная", 8)
-            )
-            "боевик" -> listOf(
-                MovieBrief("Смешная", 9),
-                MovieBrief("Страшная", 10),
-                MovieBrief("Глупая", 11),
-                MovieBrief("Это он", 12),
-                MovieBrief("Длинная", 13)
-            )
-            "семейный" -> listOf(
-                MovieBrief("Смешная", 14),
-                MovieBrief("Страшная", 15),
-                MovieBrief("Глупая", 16),
-                MovieBrief("Длинная", 17)
-            )
-            else -> listOf()
-        }
-
-         */
-    }
-
-    fun getMovieDetail(id: Int): MovieDetail {
-        return MovieDetail("Это нужно увидеть лично", id)
     }
 
 }
