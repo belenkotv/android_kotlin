@@ -16,11 +16,11 @@ data class MovieRecord(
 @Dao
 interface DbDao {
     @Insert
-    suspend fun insert(record: MovieRecord)
+    fun insert(record: MovieRecord)
     @Update
-    suspend fun update(record: MovieRecord)
+    fun update(record: MovieRecord)
     @Query("SELECT * from movie_records_table WHERE id = :id")
-    suspend fun get(id: Long): MovieRecord?
+    fun get(id: Long): MovieRecord?
 }
 
 @Database(entities = [MovieRecord::class], version = 1, exportSchema = false)
