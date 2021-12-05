@@ -1,6 +1,5 @@
 package com.example.films
 
-import android.app.Activity
 import android.content.*
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
@@ -11,7 +10,6 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -181,12 +179,14 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), OnClicks {
     private lateinit var prefs: Preferences
     private lateinit var serviceIntent: Intent
     private lateinit var movieFragment: MovieFragment
+    private lateinit var contactsFragment: ContactsFragment
     var dataBroadcastReceiver: BroadcastReceiver? = null
     var networkBroadcastReceiver: BroadcastReceiver? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val viewModel = ViewModelProvider(this).get(FilmsViewModel::class.java)
+        contactsFragment = ContactsFragment()
         movieFragment = MovieFragment(viewModel)
         if (savedInstanceState == null) {
             supportFragmentManager
@@ -194,10 +194,17 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), OnClicks {
                 .setReorderingAllowed(true)
                 .add(R.id.movie_view, movieFragment)
                 .hide(movieFragment)
+                .add(R.id.contacts_view, contactsFragment)
+                .hide(contactsFragment)
                 .commit()
         }
         val button: Button = findViewById(R.id.search)
         button.setOnClickListener {
+            supportFragmentManager
+                .beginTransaction()
+                .setReorderingAllowed(true)
+                .show(contactsFragment)
+                .commit()
         }
         prefs = Preferences.create(this)
         val categoriesView: RecyclerView = findViewById(R.id.categories)
@@ -253,14 +260,20 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), OnClicks {
     }
 
     override fun onBackPressed() {
-        if (movieFragment.isHidden) {
-            super.onBackPressed()
-        } else {
+        if (!movieFragment.isHidden) {
             supportFragmentManager
                 .beginTransaction()
                 .setReorderingAllowed(true)
                 .hide(movieFragment)
                 .commit()
+        } else if (!contactsFragment.isHidden) {
+            supportFragmentManager
+                .beginTransaction()
+                .setReorderingAllowed(true)
+                .hide(contactsFragment)
+                .commit()
+        } else {
+            super.onBackPressed()
         }
     }
 
