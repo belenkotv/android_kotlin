@@ -4,11 +4,17 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="..\:/Users/una23/AndroidStudioProjects/Films/app/src/main/res/layout/activity_main.xml" value="0.24010416666666667" />
+        <entry key="..\:/Users/una23/AndroidStudioProjects/android_kotlin/app/src/main/res/layout/activity_contacts.xml" value="0.14221014492753623" />
         <entry key="..\:/Users/una23/AndroidStudioProjects/android_kotlin/app/src/main/res/layout/activity_main.xml" value="0.16893115942028986" />
         <entry key="..\:/Users/una23/AndroidStudioProjects/android_kotlin/app/src/main/res/layout/activity_movie.xml" value="0.1265625" />
         <entry key="..\:/Users/una23/AndroidStudioProjects/android_kotlin/app/src/main/res/layout/category_item.xml" value="0.14945652173913043" />
+        <entry key="..\:/Users/una23/AndroidStudioProjects/android_kotlin/app/src/main/res/layout/contact_item.xml" value="0.14221014492753623" />
+        <entry key="..\:/Users/una23/AndroidStudioProjects/android_kotlin/app/src/main/res/layout/contacts_list.xml" value="0.14221014492753623" />
+        <entry key="..\:/Users/una23/AndroidStudioProjects/android_kotlin/app/src/main/res/layout/fragment_contacts.xml" value="0.14221014492753623" />
+        <entry key="..\:/Users/una23/AndroidStudioProjects/android_kotlin/app/src/main/res/layout/fragment_movie.xml" value="0.128125" />
         <entry key="..\:/Users/una23/AndroidStudioProjects/android_kotlin/app/src/main/res/layout/movie_item.xml" value="0.1265625" />
         <entry key="..\:/Users/una23/AndroidStudioProjects/android_kotlin/app/src/main/res/layout/movies_item.xml" value="0.14945652173913043" />
+        <entry key="..\:/Users/una23/AndroidStudioProjects/android_kotlin/app/src/main/res/menu/main.xml" value="0.14947916666666666" />
       </map>
     </option>
   </component>

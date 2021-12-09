@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">Films</string>
     <string name="search">Искать</string>
+    <string name="adult">Для взрослых</string>
+    <string name="notes">Комментарий:</string>
+    <string name="save">Coхранить</string>
 </resources>
