@@ -226,9 +226,9 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), OnClicks {
                 }
                 context?.let {
                     if (isNetworkAvailable(it)) {
-                        Toast.makeText(context, "Сеть доступна", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, R.string.network_available, Toast.LENGTH_SHORT).show()
                     } else {
-                        Toast.makeText(context, "Сеть недоступна", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, R.string.no_network, Toast.LENGTH_SHORT).show()
                     }
                 }
             }

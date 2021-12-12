@@ -4,4 +4,6 @@
     <string name="adult">Для взрослых</string>
     <string name="notes">Комментарий:</string>
     <string name="save">Coхранить</string>
+    <string name="network_available">Сеть доступна</string>
+    <string name="no_network">Сеть недоступна</string>
 </resources>
